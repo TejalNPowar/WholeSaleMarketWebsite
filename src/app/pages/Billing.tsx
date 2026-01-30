@@ -1,13 +1,17 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Plus, Minus, Trash2, Printer, User } from 'lucide-react';
-import Barcode from 'react-barcode';
+import { ShoppingCart, Plus, Minus, Trash2, Printer, User, CreditCard, Wallet, Smartphone } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Separator } from '../components/ui/separator';
 import { products, shopkeeperInfo, type Product } from '../data/mockData';
+import { saveOrder, generateId, type Order } from '../utils/storage';
+import { toast } from 'sonner';
+
+
 import {
   Select,
   SelectContent,
@@ -21,11 +25,16 @@ interface CartItem {
   quantity: number;
 }
 
+type PaymentMethod = 'cash' | 'upi' | 'card';
+
 export function Billing() {
+  const navigate = useNavigate();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<string>('');
-  const printRef = useRef<HTMLDivElement | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
+  const [paidAmount, setPaidAmount] = useState('');
+  const printRef = useRef<HTMLDivElement>(null);
 
   const addToCart = () => {
     if (!selectedProduct) return;
@@ -91,6 +100,75 @@ export function Billing() {
   const handleClearCart = () => {
     setCart([]);
     setCustomerName('');
+    setPaidAmount('');
+    setPaymentMethod('cash');
+  };
+
+  const handleConfirmOrder = () => {
+    if (cart.length === 0) {
+      toast.error('Cart is empty');
+      return;
+    }
+
+    if (!customerName.trim()) {
+      toast.error('Please enter customer name');
+      return;
+    }
+
+    const paid = parseFloat(paidAmount) || 0;
+    
+    if (paid < 0) {
+      toast.error('Paid amount cannot be negative');
+      return;
+    }
+
+    const order:Order = {
+      id: generateId('ORD'),
+      date: new Date().toISOString().split('T')[0],
+      customerName: customerName.trim(),
+      items: cart.map(item => ({
+        productId: item.product.id,
+        productName: item.product.name,
+        productBarcode: item.product.barcode,
+        quantity: item.quantity,
+        pricePerUnit: item.product.price,
+        totalPrice: item.product.price * item.quantity,
+      })),
+      subtotal,
+      tax,
+      total,
+      paymentMethod,
+      paidAmount: paid,
+      remainingAmount: total - paid,
+      status: (paid >= total ? 'completed' : 'pending') as 'completed' | 'pending',
+    };
+
+    saveOrder(order);
+    
+    toast.success(`Order ${order.id} confirmed successfully!`, {
+      description: order.status === 'completed' 
+        ? 'Payment completed' 
+        : `Remaining: $${order.remainingAmount.toFixed(2)}`,
+    });
+
+    // Clear form
+    handleClearCart();
+
+    // Navigate to orders page
+    setTimeout(() => {
+      navigate('/orders');
+    }, 1000);
+  };
+
+  const getPaymentIcon = (method: PaymentMethod) => {
+    switch (method) {
+      case 'cash':
+        return <Wallet className="h-4 w-4" />;
+      case 'upi':
+        return <Smartphone className="h-4 w-4" />;
+      case 'card':
+        return <CreditCard className="h-4 w-4" />;
+    }
   };
 
   return (
@@ -120,7 +198,7 @@ export function Billing() {
             <CardContent className="space-y-4">
               {/* Customer Name */}
               <div className="space-y-2">
-                <Label htmlFor="customer">Customer Name</Label>
+                <Label htmlFor="customer">Customer Name *</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
@@ -217,12 +295,13 @@ export function Billing() {
           </Card>
         </motion.div>
 
-        {/* Summary Section */}
+        {/* Summary & Payment Section */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="space-y-4"
         >
+          {/* Bill Summary */}
           <Card>
             <CardHeader>
               <CardTitle>Bill Summary</CardTitle>
@@ -243,9 +322,89 @@ export function Billing() {
                   <span className="font-bold text-blue-600">${total.toFixed(2)}</span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="space-y-2 pt-4">
+          {/* Payment Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Payment Method */}
+              <div className="space-y-2">
+                <Label>Payment Method</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant={paymentMethod === 'cash' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setPaymentMethod('cash')}
+                    className="flex flex-col h-auto py-3 gap-1"
+                  >
+                    <Wallet className="h-5 w-5" />
+                    <span className="text-xs">Cash</span>
+                  </Button>
+                  <Button
+                    variant={paymentMethod === 'upi' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setPaymentMethod('upi')}
+                    className="flex flex-col h-auto py-3 gap-1"
+                  >
+                    <Smartphone className="h-5 w-5" />
+                    <span className="text-xs">UPI</span>
+                  </Button>
+                  <Button
+                    variant={paymentMethod === 'card' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setPaymentMethod('card')}
+                    className="flex flex-col h-auto py-3 gap-1"
+                  >
+                    <CreditCard className="h-5 w-5" />
+                    <span className="text-xs">Card</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Paid Amount */}
+              <div className="space-y-2">
+                <Label htmlFor="paidAmount">Paid Amount</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    $
+                  </span>
+                  <Input
+                    id="paidAmount"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={paidAmount}
+                    onChange={(e) => setPaidAmount(e.target.value)}
+                    className="pl-7"
+                  />
+                </div>
+                {paidAmount && parseFloat(paidAmount) < total && (
+                  <p className="text-xs text-orange-600">
+                    Remaining: ${(total - parseFloat(paidAmount)).toFixed(2)}
+                  </p>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Action Buttons */}
+              <div className="space-y-2 pt-2">
                 <Button
+                  className="w-full gap-2"
+                  size="lg"
+                  onClick={handleConfirmOrder}
+                  disabled={cart.length === 0}
+                >
+                  {getPaymentIcon(paymentMethod)}
+                  Confirm Order
+                </Button>
+                <Button
+                  variant="outline"
                   className="w-full gap-2"
                   onClick={handlePrint}
                   disabled={cart.length === 0}
