@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ShoppingBag, Plus, Minus, Trash2, User, DollarSign, Calendar, Package, ChevronDown, ChevronUp } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
-import { Label } from '@/app/components/ui/label';
-import { Separator } from '@/app/components/ui/separator';
-import { Badge } from '@/app/components/ui/badge';
-import { products } from '@/app/data/mockData';
-import { savePurchase, getPurchases, getPurchaseStatistics, generateId, type Purchase, type PurchaseItem } from '@/app/utils/storage';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Separator } from '../components/ui/separator';
+import { Badge } from '../components/ui/badge';
+import { products } from '../data/mockData';
+import { savePurchase, getPurchases, getPurchaseStatistics, generateId, type Purchase, type PurchaseItem } from '../utils/storage';
 import { toast } from 'sonner';
 import {
   Select,
@@ -16,7 +16,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/app/components/ui/select';
+} from '../components/ui/select';
 
 interface PurchaseCartItem {
   productId: string;

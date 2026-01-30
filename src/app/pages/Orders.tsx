@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { FileText, Calendar, User, Package, ChevronDown, ChevronUp, DollarSign } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Badge } from '@/app/components/ui/badge';
-import { Button } from '@/app/components/ui/button';
-import { getOrders, getOrderStatistics, type Order } from '@/app/utils/storage';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import { getOrders, getOrderStatistics, type Order } from '../utils/storage';
 
 export function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -263,7 +263,7 @@ export function Orders() {
                             <h5 className="font-semibold text-gray-900">Payment Details</h5>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Payment Method:</span>
-                              <Badge className={getPaymentMethodBadge(order.paymentMethod)} size="sm">
+                              <Badge className={getPaymentMethodBadge(order.paymentMethod)}>
                                 {order.paymentMethod.toUpperCase()}
                               </Badge>
                             </div>

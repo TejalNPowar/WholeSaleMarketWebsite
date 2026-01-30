@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router';
 import { motion } from 'motion/react';
-import { Package, ShoppingCart, FileText, User, LogOut } from 'lucide-react';
+import { Package, ShoppingCart, FileText, User, LogOut, ShoppingBag } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,7 @@ export function Layout() {
     { path: '/', label: 'Products', icon: Package },
     { path: '/billing', label: 'Billing', icon: ShoppingCart },
     { path: '/orders', label: 'Orders', icon: FileText },
+    { path: '/purchases', label: 'Purchases', icon: ShoppingBag },
   ];
 
   const handleLogout = () => {

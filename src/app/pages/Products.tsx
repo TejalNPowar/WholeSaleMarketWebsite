@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Search, Package } from 'lucide-react';
 import Barcode from 'react-barcode';
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Input } from '@/app/components/ui/input';
-import { Badge } from '@/app/components/ui/badge';
-import { products } from '@/app/data/mockData';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Badge } from '../components/ui/badge';
+import { products } from '../data/mockData';
 
 export function Products() {
   const [searchTerm, setSearchTerm] = useState('');
